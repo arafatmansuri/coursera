@@ -2,7 +2,7 @@ const mongoose = require("mongoose");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const Schema = mongoose.Schema;
-const UserSchema = new Schema(
+const AdminSchema = new Schema(
   {
     username: {
       type: String,
@@ -27,7 +27,7 @@ const UserSchema = new Schema(
   },
   { timestamps: true }
 );
-UserSchema.pre("save", async (next) => {
+AdminSchema.pre("save", async (next) => {
   if (!this.isModified("password")) {
     return next();
   }
@@ -36,11 +36,11 @@ UserSchema.pre("save", async (next) => {
   return next();
 });
 
-UserSchema.methods.isPasswordCorrect = async (userPasword) => {
+AdminSchema.methods.isPasswordCorrect = async (userPasword) => {
   return bcrypt.compareSync(userPasword, this.password);
 };
 
-UserSchema.methods.generateAccessToken = async () => {
+AdminSchema.methods.generateAccessToken = async () => {
   return jwt.sign(
     {
       _id: this._id,
@@ -50,7 +50,7 @@ UserSchema.methods.generateAccessToken = async () => {
     { expiresIn: "1h" }
   );
 };
-UserSchema.methods.generateRefreshToken = async () => {
+AdminSchema.methods.generateRefreshToken = async () => {
   return jwt.sign(
     {
       _id: this._id,
@@ -60,6 +60,5 @@ UserSchema.methods.generateRefreshToken = async () => {
   );
 };
 
-const User = mongoose.model("User", UserSchema);
-exports.User = User;
-module.exports = User;
+const Admin = mongoose.model("Admin", AdminSchema);
+module.exports = Admin;

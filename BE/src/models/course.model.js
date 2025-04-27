@@ -19,6 +19,10 @@ const CourseSchema = new Schema(
     imageUrl: {
       type: String,
     },
+    createdId: {
+      type: Schema.Types.ObjectId,
+      ref: "Admin",
+    },
   },
   { timestamps: true }
 );
