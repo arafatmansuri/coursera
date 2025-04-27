@@ -1,6 +1,7 @@
 const express = require("express");
 const userRouter = require("./src/routes/user.router.js");
 const mongoose = require("mongoose");
+const adminRouter = require("./src/routes/admin.router.js");
 const app = express();
 mongoose.connect(process.env.MONGODB_URI);
 app.get("/", (req, res) => {
@@ -8,5 +9,6 @@ app.get("/", (req, res) => {
 });
 
 app.use("/api/v1/user", userRouter);
+app.use("/api/v1/admin", adminRouter);
 
 module.exports = app;
