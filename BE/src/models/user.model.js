@@ -27,7 +27,6 @@ const UserSchema = new Schema(
       required: true,
       trim: true,
     },
-    courses: [{ type: Schema.types.ObjectId, ref: "Course" }],
     refreshToken: {
       type: String,
     },
@@ -52,6 +51,7 @@ User.methods.generateAccessToken = async () => {
     {
       _id: this._id,
       username: this.username,
+      role: this.role,
     },
     process.env.ACCESS_TOKEN,
     { expiresIn: "1h" }
