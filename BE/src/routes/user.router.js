@@ -1,8 +1,22 @@
 const { Router } = require("express");
-const { signup } = require("../controllers/user.controller.js");
+const {
+  signup,
+  signin,
+  logout,
+  refreshAccessAndRefreshToken,
+  getUser,
+  getUserPurchases,
+} = require("../controllers/user.controller.js");
 
 const userRouter = Router();
 
-userRouter.route("/signup", signup);
+userRouter.route("/signup").post(signup);
+userRouter.route("/sigin").post(signin);
+
+// secured routes - add auth middlewear
+userRouter.route("/logout").get(logout);
+userRouter.route("/reftoken").post(refreshAccessAndRefreshToken);
+userRouter.route("/getuser").get(getUser);
+userRouter.route("/getpurchases").get(getUserPurchases);
 
 module.exports = userRouter;
