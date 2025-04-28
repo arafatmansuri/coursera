@@ -27,8 +27,27 @@ async function purchaseCourse(req, res) {
 }
 
 //Admin Accessible Controllers
-async function addCourse(req, res) {}
-async function displayAdminCourses(req, res) {}
+async function addCourse(req, res) {
+  const admin = req.user;
+  const { title, description, imageUrl, price } = req.body;
+
+  const course = await Course.create({
+    title,
+    description,
+    imageUrl,
+    price,
+    createdId: admin._id,
+  });
+
+  return res.status(200).json({ message: "Course added", course });
+}
+async function displayAdminCourses(req, res) {
+  const admin = req.user;
+  const courses = await Course.find({ createdId: admin._id });
+  return res
+    .status(200)
+    .json({ message: "Courses fetched successfully", courses });
+}
 async function updateCourse(req, res) {}
 
 module.exports = {

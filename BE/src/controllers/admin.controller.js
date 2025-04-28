@@ -143,6 +143,7 @@ async function refreshAccessAndRefreshToken(req, res) {
       user._id
     );
     user.refreshToken = refreshToken;
+    await user.save({ validateBeforeSave: false });
     const cookieOptions = {
       httpOnly: true,
       secure: true,
