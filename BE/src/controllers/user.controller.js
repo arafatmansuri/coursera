@@ -161,7 +161,12 @@ async function refreshAccessAndRefreshToken(req, res) {
       .json({ message: err.message || "Something went wrong from our side" });
   }
 }
-async function logout(req, res) {}
+async function logout(req, res) {
+  return res
+    .clearCookie("accessToken", { path: "/" })
+    .clearCookie("refreshToken", { path: "/" })
+    .end();
+}
 async function getUser(req, res) {}
 async function getUserPurchases(req, res) {}
 

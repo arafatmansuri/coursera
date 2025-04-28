@@ -124,44 +124,49 @@ async function signin(req, res) {
 }
 async function refreshAccessAndRefreshToken(req, res) {
   try {
-      const oldRefreshToken = req.cookies.refreshToken;
-      if (!oldRefreshToken) {
-        return res.status(401).json({ message: "Unauthorized" });
-      }
-      const decodedToken = jwt.verify(
-        oldRefreshToken,
-        process.env.REFRESH_TOKEN_SECRET_ADMIN  
-      );
-      if (!decodedToken) {
-        return res.status(401).json({ message: "Unauthorized" });
-      }
-      const user = await Admin.findById(decodedToken._id);
-      if (!user) {
-        return res.status(401).json({ message: "Unauthorized" });
-      }
-      const { accessToken, refreshToken } = await generateAccessAndRefreshToken(
-        user._id
-      );
-      user.refreshToken = refreshToken;
-      const cookieOptions = {
-        httpOnly: true,
-        secure: true,
-        sameSite: "None",
-        path: "/",
-        maxAge: 24 * 60 * 60 * 1000, // 1 day,
-      };
-      res
-        .status(200)
-        .cookie("accessToken", accessToken, cookieOptions)
-        .cookie("refreshToken", refreshToken, cookieOptions)
-        .json({ message: "Access token refreshed successfully" });
-    } catch (err) {
-      return res
-        .status(500)
-        .json({ message: err.message || "Something went wrong from our side" });
+    const oldRefreshToken = req.cookies.refreshToken;
+    if (!oldRefreshToken) {
+      return res.status(401).json({ message: "Unauthorized" });
     }
+    const decodedToken = jwt.verify(
+      oldRefreshToken,
+      process.env.REFRESH_TOKEN_SECRET_ADMIN
+    );
+    if (!decodedToken) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+    const user = await Admin.findById(decodedToken._id);
+    if (!user) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+    const { accessToken, refreshToken } = await generateAccessAndRefreshToken(
+      user._id
+    );
+    user.refreshToken = refreshToken;
+    const cookieOptions = {
+      httpOnly: true,
+      secure: true,
+      sameSite: "None",
+      path: "/",
+      maxAge: 24 * 60 * 60 * 1000, // 1 day,
+    };
+    res
+      .status(200)
+      .cookie("accessToken", accessToken, cookieOptions)
+      .cookie("refreshToken", refreshToken, cookieOptions)
+      .json({ message: "Access token refreshed successfully" });
+  } catch (err) {
+    return res
+      .status(500)
+      .json({ message: err.message || "Something went wrong from our side" });
+  }
 }
-async function logout(req, res) {}
+async function logout(req, res) {
+  return res
+    .clearCookie("accessToken", { path: "/" })
+    .clearCookie("refreshToken", { path: "/" })
+    .end();
+}
 async function getAdmin(req, res) {}
 
 module.exports = {
