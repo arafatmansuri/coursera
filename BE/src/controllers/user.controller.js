@@ -1,4 +1,6 @@
 const User = require("../models/user.model");
+const Purchase = require("../models/purchase.model");
+const Course = require("../models/course.model");
 const z = require("zod");
 const jwt = require("jsonwebtoken");
 async function generateAccessAndRefreshToken(userId) {
@@ -174,7 +176,14 @@ async function getUser(req, res) {
     .status(200)
     .json({ message: "User data fecthed successfully", user });
 }
-async function getUserPurchases(req, res) {}
+async function getUserPurchases(req, res) {
+  const user = req.user;
+
+  const purchases = await Purchase.find({ userId: user._id });
+  const courses = await Course.find({ _id: purchases.courseId });
+
+  return res.status(200).json({ courses });
+}
 
 module.exports = {
   signup,
