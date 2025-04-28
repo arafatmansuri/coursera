@@ -2,14 +2,14 @@ const Admin = require("../models/admin.model");
 const z = require("zod");
 async function generateAccessAndRefreshToken(adminId) {
   try {
-    const user = await Admin.findById(adminId);
-    if (!user) {
+    const admin = await Admin.findById(adminId);
+    if (!admin) {
       return res.status(404).json({ message: "User not found" });
     }
-    const accessToken = await user.generateAccessToken();
-    const refreshToken = await user.generateRefreshToken();
-    user.refreshToken = refreshToken;
-    await user.save({ validateBeforeSave: false });
+    const accessToken = await admin.generateAccessToken();
+    const refreshToken = await admin.generateRefreshToken();
+    admin.refreshToken = refreshToken;
+    await admin.save({ validateBeforeSave: false });
     return { accessToken, refreshToken };
   } catch (err) {
     return res
@@ -44,10 +44,10 @@ async function signup(req, res) {
         .status(400)
         .json({ message: safeParse.error.errors[0].message });
     }
-    const user = await Admin.findOne({
+    const admin = await Admin.findOne({
       $or: [{ username: safeParse.data.username, email: safeParse.data.email }],
     });
-    if (user) {
+    if (admin) {
       return res
         .status(409)
         .json({ message: "User already exists with this username or email" });
@@ -89,20 +89,20 @@ async function signin(req, res) {
         .status(400)
         .json({ message: safeParse.error.errors[0].message });
     }
-    const user = await Admin.findOne({ username: safeParse.data.username });
-    if (!user) {
+    const admin = await Admin.findOne({ username: safeParse.data.username });
+    if (!admin) {
       return res
         .status(404)
         .json({ message: "User already doesn't exists with this username" });
     }
-    if (!user.isPasswordCorrect(safeParse.data.password)) {
+    if (!admin.isPasswordCorrect(safeParse.data.password)) {
       return res.status(404).json({ message: "Invalid password" });
     }
     const { accessToken, refreshToken } = await generateAccessAndRefreshToken(
-      user._id
+      admin._id
     );
-    user.refreshToken = refreshToken;
-    await user.save({ validateBeforeSave: false });
+    admin.refreshToken = refreshToken;
+    await admin.save({ validateBeforeSave: false });
     const cookieOptions = {
       httpOnly: true,
       secure: true,
