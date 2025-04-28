@@ -167,7 +167,12 @@ async function logout(req, res) {
     .clearCookie("refreshToken", { path: "/" })
     .end();
 }
-async function getUser(req, res) {}
+async function getUser(req, res) {
+  const user = req.user;
+  return res
+    .status(200)
+    .json({ message: "User data fecthed successfully", user });
+}
 async function getUserPurchases(req, res) {}
 
 module.exports = {

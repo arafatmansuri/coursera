@@ -167,7 +167,12 @@ async function logout(req, res) {
     .clearCookie("refreshToken", { path: "/" })
     .end();
 }
-async function getAdmin(req, res) {}
+async function getAdmin(req, res) {
+  const admin = req.user;
+  return res
+    .status(200)
+    .json({ message: "Admin data fecthed successfully", admin });
+}
 
 module.exports = {
   signup,
