@@ -27,39 +27,38 @@ const UserSchema = new Schema(
   },
   { timestamps: true }
 );
-UserSchema.pre("save", async (next) => {
+UserSchema.pre("save", async function (next) {
   if (!this.isModified("password")) {
     return next();
   }
   this.password = await bcrypt.hash(this.password, 10);
 
-  return next();
+  next();
 });
 
-UserSchema.methods.isPasswordCorrect = async (userPasword) => {
+UserSchema.methods.isPasswordCorrect = function (userPasword) {
   return bcrypt.compareSync(userPasword, this.password);
 };
 
-UserSchema.methods.generateAccessToken = async () => {
+UserSchema.methods.generateAccessToken = async function () {
   return jwt.sign(
     {
       _id: this._id,
       username: this.username,
     },
-    process.env.ACCESS_TOKEN,
+    process.env.ACCESS_TOKEN_SECRET,
     { expiresIn: "1h" }
   );
 };
-UserSchema.methods.generateRefreshToken = async () => {
+UserSchema.methods.generateRefreshToken = async function () {
   return jwt.sign(
     {
       _id: this._id,
     },
-    process.env.REFRESH_TOKEN,
+    process.env.REFRESH_TOKEN_SECRET,
     { expiresIn: "1d" }
   );
 };
 
 const User = mongoose.model("User", UserSchema);
-exports.User = User;
 module.exports = User;

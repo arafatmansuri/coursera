@@ -46,7 +46,7 @@ AdminSchema.methods.generateAccessToken = async function () {
       _id: this._id,
       username: this.username,
     },
-    process.env.ACCESS_TOKEN,
+    process.env.ACCESS_TOKEN_SECRET_ADMIN,
     { expiresIn: "1h" }
   );
 };
@@ -55,7 +55,7 @@ AdminSchema.methods.generateRefreshToken = async function () {
     {
       _id: this._id,
     },
-    process.env.REFRESH_TOKEN,
+    process.env.REFRESH_TOKEN_SECRET_ADMIN,
     { expiresIn: "1d" }
   );
 };
