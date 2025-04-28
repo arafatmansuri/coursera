@@ -50,7 +50,14 @@ async function displayAdminCourses(req, res) {
 }
 async function updateCourse(req, res) {
   const courseId = req.params.courseId;
+  const admin = req.user;
   const { title, description, imageUrl, price } = req.body;
+  const course = await Course.findById(courseId);
+  if (!course.createdId === admin._id) {
+    return res
+      .status(401)
+      .json({ message: "You don't have access to update this course" });
+  }
   const updatedCourse = await Course.findByIdAndUpdate(courseId, {
     title,
     description,
