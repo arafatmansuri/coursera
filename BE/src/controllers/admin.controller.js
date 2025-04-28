@@ -40,7 +40,9 @@ async function signup(req, res) {
     });
     const safeParse = reqSchema.safeParse(req.body);
     if (!safeParse.success) {
-      return res.status(400).json({ message: safeParse.error.message });
+      return res
+        .status(400)
+        .json({ message: safeParse.error.errors[0].message });
     }
     const user = await Admin.findOne({
       $or: [{ username: safeParse.data.username, email: safeParse.data.email }],
@@ -83,7 +85,9 @@ async function signin(req, res) {
     });
     const safeParse = reqSchema.safeParse(req.body);
     if (!safeParse.success) {
-      return res.status(400).json({ message: safeParse.error.message });
+      return res
+        .status(400)
+        .json({ message: safeParse.error.errors[0].message });
     }
     const user = await Admin.findOne({ username: safeParse.data.username });
     if (!user) {
@@ -91,7 +95,7 @@ async function signin(req, res) {
         .status(404)
         .json({ message: "User already doesn't exists with this username" });
     }
-    if (!Admin.isPasswordCorrect(safeParse.data.password)) {
+    if (!user.isPasswordCorrect(safeParse.data.password)) {
       return res.status(404).json({ message: "Invalid password" });
     }
     const { accessToken, refreshToken } = await generateAccessAndRefreshToken(

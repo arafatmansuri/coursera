@@ -27,20 +27,20 @@ const AdminSchema = new Schema(
   },
   { timestamps: true }
 );
-AdminSchema.pre("save", async (next) => {
+AdminSchema.pre("save", async function (next) {
   if (!this.isModified("password")) {
     return next();
   }
   this.password = await bcrypt.hash(this.password, 10);
 
-  return next();
+  next();
 });
 
-AdminSchema.methods.isPasswordCorrect = async (userPasword) => {
+AdminSchema.methods.isPasswordCorrect = function (userPasword) {
   return bcrypt.compareSync(userPasword, this.password);
 };
 
-AdminSchema.methods.generateAccessToken = async () => {
+AdminSchema.methods.generateAccessToken = async function () {
   return jwt.sign(
     {
       _id: this._id,
@@ -50,7 +50,7 @@ AdminSchema.methods.generateAccessToken = async () => {
     { expiresIn: "1h" }
   );
 };
-AdminSchema.methods.generateRefreshToken = async () => {
+AdminSchema.methods.generateRefreshToken = async function () {
   return jwt.sign(
     {
       _id: this._id,
