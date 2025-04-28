@@ -180,7 +180,9 @@ async function getUserPurchases(req, res) {
   const user = req.user;
 
   const purchases = await Purchase.find({ userId: user._id });
-  const courses = await Course.find({ _id: purchases.courseId });
+  const courses = await Course.find({
+    _id: { $in: purchases.map((c) => c.courseId) },
+  });
 
   return res.status(200).json({ courses });
 }
