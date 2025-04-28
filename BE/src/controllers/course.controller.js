@@ -48,7 +48,22 @@ async function displayAdminCourses(req, res) {
     .status(200)
     .json({ message: "Courses fetched successfully", courses });
 }
-async function updateCourse(req, res) {}
+async function updateCourse(req, res) {
+  const courseId = req.params.courseId;
+  const { title, description, imageUrl, price } = req.body;
+  const updatedCourse = await Course.findByIdAndUpdate(courseId, {
+    title,
+    description,
+    imageUrl,
+    price,
+  });
+  if (!updatedCourse)
+    return res.status(404).json({ message: "Course not found" });
+
+  return res
+    .status(200)
+    .json({ message: "Course updated successfully", updatedCourse });
+}
 
 module.exports = {
   previewCourses,
