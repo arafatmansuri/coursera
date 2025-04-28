@@ -77,7 +77,50 @@ async function signup(req, res) {
       .json({ message: err.message || "Something went wrong from our side" });
   }
 }
-async function signin(req, res) {}
+async function signin(req, res) {
+  try {
+    const reqSchema = z.object({
+      username: z.string().min(3, { message: "username is too short" }).trim(),
+      password: z.string(),
+    });
+    const safeParse = reqSchema.safeParse(req.body);
+    if (!safeParse.success) {
+      return res
+        .status(400)
+        .json({ message: safeParse.error.errors[0].message });
+    }
+    const user = await User.findOne({ username: safeParse.data.username });
+    if (!user) {
+      return res
+        .status(404)
+        .json({ message: "User already doesn't exists with this username" });
+    }
+    if (!user.isPasswordCorrect(safeParse.data.password)) {
+      return res.status(404).json({ message: "Invalid password" });
+    }
+    const { accessToken, refreshToken } = await generateAccessAndRefreshToken(
+      user._id
+    );
+    user.refreshToken = refreshToken;
+    await user.save({ validateBeforeSave: false });
+    const cookieOptions = {
+      httpOnly: true,
+      secure: true,
+      sameSite: "None",
+      path: "/",
+      maxAge: 24 * 60 * 60 * 1000, // 1 day
+    };
+    return res
+      .status(200)
+      .cookie("accessToken", accessToken, cookieOptions)
+      .cookie("refreshToken", refreshToken, cookieOptions)
+      .json({ message: "User logged in successfully" });
+  } catch (err) {
+    return res
+      .status(500)
+      .json({ message: err.message || "Something went wrong from our side" });
+  }
+}
 async function refreshAccessAndRefreshToken(req, res) {}
 async function logout(req, res) {}
 async function getUser(req, res) {}

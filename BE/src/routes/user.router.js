@@ -12,7 +12,7 @@ const { userAuth } = require("../middlewears/user.middlewear.js");
 const userRouter = Router();
 
 userRouter.route("/signup").post(signup);
-userRouter.route("/sigin").post(signin);
+userRouter.route("/signin").post(signin);
 
 // secured routes - add auth middlewear
 userRouter.use(userAuth);
