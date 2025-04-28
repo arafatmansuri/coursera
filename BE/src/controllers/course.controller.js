@@ -23,6 +23,7 @@ async function purchaseCourse(req, res) {
     userId: user._id,
     courseId: course._id,
   });
+  return res.status(200).json({ message: "Course purchased successfully" });
 }
 
 //Admin Accessible Controllers
