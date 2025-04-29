@@ -1,33 +1,10 @@
 const mongoose = require("mongoose");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
+const User = require("./baseUser.model");
 const Schema = mongoose.Schema;
-const AdminSchema = new Schema(
-  {
-    username: {
-      type: String,
-      required: true,
-      trim: true,
-      unique: true,
-    },
-    email: {
-      type: String,
-      required: true,
-      trim: true,
-      unique: true,
-    },
-    password: {
-      type: String,
-      required: true,
-      trim: true,
-    },
-    refreshToken: {
-      type: String,
-    },
-  },
-  { timestamps: true }
-);
-AdminSchema.pre("save", async function (next) {
+const AdminSchema = new Schema();
+/*AdminSchema.pre("save", async function (next) {
   if (!this.isModified("password")) {
     return next();
   }
@@ -39,7 +16,7 @@ AdminSchema.pre("save", async function (next) {
 AdminSchema.methods.isPasswordCorrect = function (userPasword) {
   return bcrypt.compareSync(userPasword, this.password);
 };
-
+*/
 AdminSchema.methods.generateAccessToken = async function () {
   return jwt.sign(
     {
@@ -60,5 +37,6 @@ AdminSchema.methods.generateRefreshToken = async function () {
   );
 };
 
-const Admin = mongoose.model("Admin", AdminSchema);
+// const Admin = mongoose.model("Admin", AdminSchema);
+const Admin = User.discriminator("Admin", AdminSchema);
 module.exports = Admin;
