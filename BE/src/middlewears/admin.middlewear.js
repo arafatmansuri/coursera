@@ -7,7 +7,10 @@ async function adminAuth(req, res, next) {
     if (!accessToken) {
       return res.status(401).json({ message: "Unathorized" });
     }
-    const decodedToken = jwt.verify(accessToken, process.env.accessToken);
+    const decodedToken = jwt.verify(
+      accessToken,
+      process.env.ACCESS_TOKEN_SECRET_ADMIN
+    );
     if (!decodedToken) {
       return res.status(401).json({ message: "Unathorized" });
     }
