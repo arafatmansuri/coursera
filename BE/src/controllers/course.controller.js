@@ -53,7 +53,7 @@ async function updateCourse(req, res) {
   const admin = req.user;
   const { title, description, imageUrl, price } = req.body;
   const course = await Course.findById(courseId);
-  if (!course.createrId === admin._id) {
+  if (!course.createrId.equals(admin._id)) {
     return res
       .status(401)
       .json({ message: "You don't have access to update this course" });
