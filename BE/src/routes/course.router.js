@@ -13,12 +13,12 @@ const courseRouter = Router();
 
 courseRouter.route("/preview").get(previewCourses);
 
-courseRouter.route("/purchase").post(userAuth, purchaseCourse);
+courseRouter.route("/purchase/:courseId").post(userAuth, purchaseCourse);
 
 //Only Admins Accessible routes
 courseRouter.use(adminAuth);
 courseRouter.route("/add").post(addCourse);
-courseRouter.route("/update").put(updateCourse);
+courseRouter.route("/update/:courseId").put(updateCourse);
 courseRouter.route("/getpubcourses").get(displayAdminCourses);
 
 module.exports = courseRouter;

@@ -15,7 +15,7 @@ async function purchaseCourse(req, res) {
   const ruser = req.user;
   const user = await User.findById(ruser._id);
   const purchase = await Purchase.findOne({
-    $or: [{ userId: user._id }, { courseId: course._id }],
+    $and: [{ userId: user._id }, { courseId: course._id }],
   });
   if (purchase)
     return res.status(404).json({ message: "Course already purchased" });
