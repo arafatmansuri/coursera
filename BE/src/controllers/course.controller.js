@@ -36,14 +36,14 @@ async function addCourse(req, res) {
     description,
     imageUrl,
     price,
-    createdId: admin._id,
+    createrId: admin._id,
   });
 
   return res.status(200).json({ message: "Course added", course });
 }
 async function displayAdminCourses(req, res) {
   const admin = req.user;
-  const courses = await Course.find({ createdId: admin._id });
+  const courses = await Course.find({ createrId: admin._id });
   return res
     .status(200)
     .json({ message: "Courses fetched successfully", courses });
@@ -53,7 +53,7 @@ async function updateCourse(req, res) {
   const admin = req.user;
   const { title, description, imageUrl, price } = req.body;
   const course = await Course.findById(courseId);
-  if (!course.createdId === admin._id) {
+  if (!course.createrId === admin._id) {
     return res
       .status(401)
       .json({ message: "You don't have access to update this course" });

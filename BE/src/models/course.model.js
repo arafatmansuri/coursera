@@ -19,7 +19,7 @@ const CourseSchema = new Schema(
     imageUrl: {
       type: String,
     },
-    createdId: {
+    createrId: {
       type: Schema.Types.ObjectId,
       ref: "Admin",
     },
