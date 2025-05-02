@@ -125,7 +125,20 @@ async function updateCourse(req, res) {
     .status(200)
     .json({ message: "Course updated successfully", updatedCourse });
 }
-
+async function deleteCourse() {
+  try {
+    const courseId = req.params.courseId;
+    const courseToBeDeleted = await Course.findByIdAndDelete(courseId);
+    if (!courseToBeDeleted) {
+      return res.status(404).json({ message: "course not found" });
+    }
+    return res.status(200).json({ message: "course deleted successfully" });
+  } catch (err) {
+    return res
+      .status(500)
+      .json({ message: err.message || "something went wrong from our side" });
+  }
+}
 module.exports = {
   previewCourses,
   purchaseCourse,
