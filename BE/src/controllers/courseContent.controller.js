@@ -37,15 +37,14 @@ async function addContent(req, res) {
 async function updateContent(req, res) {
   try {
     const contentId = req.params.contentId;
-    const { title, description, assignmentsStr, video } = req.body;
-    const assigments = assignmentsStr.split(" ");
+    const { title, description, assignments, video } = req.body;
     const updatedCourseContent = await CourseContent.findByIdAndUpdate(
       contentId,
       {
         $set: {
           title,
           description,
-          assigments,
+          assignments,
           url: video,
         },
       },
@@ -78,7 +77,15 @@ async function deleteContent(req, res) {
 }
 async function getContent(req, res) {
   try {
+    const admin = req.user;
     const courseId = req.params.courseId;
+    const isValidCreator = await Course.findOne({
+      $and: [{ createrId: admin._id, _id: courseId }],
+    });
+    if (!isValidCreator)
+      return res.status(404).json({
+        message: "You don't have permission to add content in this course",
+      });
     const content = await CourseContent.find({ courseId });
     return res
       .status(200)
