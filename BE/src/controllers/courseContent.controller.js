@@ -53,7 +53,20 @@ async function updateContent() {
       .json({ message: err.message || "something went wrong from our side" });
   }
 }
-async function deleteContent() {}
+async function deleteContent() {
+  try {
+    const contentId = req.params.contentId;
+    const contentToBeDeleted = await CourseContent.findByIdAndDelete(contentId);
+    if (!contentToBeDeleted) {
+      return res.status(404).json({ message: "content not found" });
+    }
+    return res.status(200).json({ message: "Content deleted successfully" });
+  } catch (err) {
+    return res
+      .status(500)
+      .json({ message: err.message || "something went wrong from our side" });
+  }
+}
 async function getContent() {
   try {
     const courseId = req.params.courseId;
