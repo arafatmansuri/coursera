@@ -19,6 +19,8 @@ async function previewCourses(req, res) {
     },
     {
       $project: {
+        courseId: "$courses._id",
+        _id: 0,
         username: 1,
         courseTitle: "$courses.title",
         courseDesc: "$courses.description",
@@ -125,7 +127,7 @@ async function updateCourse(req, res) {
     .status(200)
     .json({ message: "Course updated successfully", updatedCourse });
 }
-async function deleteCourse() {
+async function deleteCourse(req, res) {
   try {
     const courseId = req.params.courseId;
     const courseToBeDeleted = await Course.findByIdAndDelete(courseId);

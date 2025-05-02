@@ -14,7 +14,7 @@ const ContentSchema = new mongoose.Schema({
   description: {
     type: String,
   },
-  assigments: [
+  assignments: [
     {
       type: String,
       trim: true,

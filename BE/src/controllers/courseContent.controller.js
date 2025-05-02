@@ -1,16 +1,25 @@
+const Course = require("../models/course.model.js");
 const CourseContent = require("../models/courseContent.model.js");
 
-async function addContent() {
+async function addContent(req, res) {
   try {
+    const admin = req.user;
     const courseId = req.params.courseId;
-    const { title, description, assignmentsStr, video } = req.body;
+    const isValidCreator = await Course.findOne({
+      $and: [{ createrId: admin._id, _id: courseId }],
+    });
+    if (!isValidCreator)
+      return res.status(404).json({
+        message: "You don't have permission to add content in this course",
+      });
+    const { title, description, assignments, video } = req.body;
+
     const videoNo = (await CourseContent.countDocuments({ courseId })) + 1;
-    console.log(videoNo);
-    const assigments = assignmentsStr.split(" ");
+    // const assigments = assignmentsStr.split(",");
     const newContent = await CourseContent.create({
       title,
       description,
-      assigments,
+      assignments,
       url: video,
       videoNo,
       courseId,
@@ -25,7 +34,7 @@ async function addContent() {
       .json({ message: err.message || "Something went wrong from our side" });
   }
 }
-async function updateContent() {
+async function updateContent(req, res) {
   try {
     const contentId = req.params.contentId;
     const { title, description, assignmentsStr, video } = req.body;
@@ -53,7 +62,7 @@ async function updateContent() {
       .json({ message: err.message || "something went wrong from our side" });
   }
 }
-async function deleteContent() {
+async function deleteContent(req, res) {
   try {
     const contentId = req.params.contentId;
     const contentToBeDeleted = await CourseContent.findByIdAndDelete(contentId);
@@ -67,7 +76,7 @@ async function deleteContent() {
       .json({ message: err.message || "something went wrong from our side" });
   }
 }
-async function getContent() {
+async function getContent(req, res) {
   try {
     const courseId = req.params.courseId;
     const content = await CourseContent.find({ courseId });

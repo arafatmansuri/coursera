@@ -11,9 +11,9 @@ const courseContentRouter = Router();
 
 courseContentRouter.use(adminAuth);
 
-courseContentRouter.route("/add").post(addContent);
-courseContentRouter.route("/update").put(updateContent);
-courseContentRouter.route("/delete").delete(deleteContent);
-courseContentRouter.route("/display").get(getContent);
+courseContentRouter.route("/add/:courseId").post(addContent);
+courseContentRouter.route("/update/:contentId").put(updateContent);
+courseContentRouter.route("/delete/:contentId").delete(deleteContent);
+courseContentRouter.route("/display/:courseId").get(getContent);
 
 module.exports = courseContentRouter;
