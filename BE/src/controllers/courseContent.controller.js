@@ -1,4 +1,4 @@
-const CourseContent = require("../models/courseContent.model");
+const CourseContent = require("../models/courseContent.model.js");
 
 async function addContent() {
   try {
@@ -25,7 +25,34 @@ async function addContent() {
       .json({ message: err.message || "Something went wrong from our side" });
   }
 }
-async function updateContent() {}
+async function updateContent() {
+  try {
+    const contentId = req.params.contentId;
+    const { title, description, assignmentsStr, video } = req.body;
+    const assigments = assignmentsStr.split(" ");
+    const updatedCourseContent = await CourseContent.findByIdAndUpdate(
+      contentId,
+      {
+        $set: {
+          title,
+          description,
+          assigments,
+          url: video,
+        },
+      },
+      { new: true }
+    );
+    if (!updatedCourseContent)
+      return res.status(404).json({ message: "Content not found" });
+    return res
+      .status(200)
+      .json({ message: "Content updated successfully", updatedCourseContent });
+  } catch (err) {
+    return res
+      .status(500)
+      .json({ message: err.message || "something went wrong from our side" });
+  }
+}
 async function deleteContent() {}
 async function getContent() {
   try {
