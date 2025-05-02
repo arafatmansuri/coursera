@@ -1,9 +1,11 @@
 const Course = require("../models/course.model.js");
 const Purchase = require("../models/purchase.model.js");
 const User = require("../models/user.model.js");
+const Admin = require("../models/admin.model.js");
 //User Accessible Controllers
 async function previewCourses(req, res) {
-  const courses = await Course.find({});
+  // const courses = await Course.find({});
+  const courses = await Course.aggregate([]);
   return res
     .status(200)
     .json({ message: "Courses fetched successfully", courses });
@@ -43,7 +45,32 @@ async function addCourse(req, res) {
 }
 async function displayAdminCourses(req, res) {
   const admin = req.user;
-  const courses = await Course.find({ createrId: admin._id });
+  const courses = await Admin.aggregate([
+    {
+      $lookup: {
+        from: "courses",
+        localField: "_id",
+        foreignField: "createrId",
+        as: "courses",
+      },
+    },
+    {
+      $unwind: "$courses",
+    },
+    {
+      $match: {
+        $and: [{ _id: admin._id, role: "Admin" }],
+      },
+    },
+    {
+      $project: {
+        courseTitle: "$courses.title",
+        courseDesc: "$courses.description",
+        coursePrice: "$courses.price",
+        courseImg: "$courses.imageUrl",
+      },
+    },
+  ]);
   return res
     .status(200)
     .json({ message: "Courses fetched successfully", courses });
