@@ -27,7 +27,19 @@ async function addContent() {
 }
 async function updateContent() {}
 async function deleteContent() {}
-async function getContent() {}
+async function getContent() {
+  try {
+    const courseId = req.params.courseId;
+    const content = await CourseContent.find({ courseId });
+    return res
+      .status(200)
+      .json({ message: "course content fetched successfully", content });
+  } catch (err) {
+    return res
+      .status(500)
+      .json({ message: err.message || "something went wrong from our side" });
+  }
+}
 
 module.exports = {
   addContent,
