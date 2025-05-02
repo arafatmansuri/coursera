@@ -63,8 +63,9 @@ async function updateContent(req, res) {
 }
 async function deleteContent(req, res) {
   try {
+    const admin = req.user;
     const contentId = req.params.contentId;
-    const contentToBeDeleted = await CourseContent.findByIdAndDelete(contentId);
+    const contentToBeDeleted = await CourseContent.findByIdAndDelete({$and:[{}]});
     if (!contentToBeDeleted) {
       return res.status(404).json({ message: "content not found" });
     }
