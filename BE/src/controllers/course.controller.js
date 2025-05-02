@@ -5,7 +5,28 @@ const Admin = require("../models/admin.model.js");
 //User Accessible Controllers
 async function previewCourses(req, res) {
   // const courses = await Course.find({});
-  const courses = await Course.aggregate([]);
+  const courses = await Admin.aggregate([
+    {
+      $lookup: {
+        from: "courses",
+        localField: "_id",
+        foreignField: "createrId",
+        as: "courses",
+      },
+    },
+    {
+      $unwind: "$courses",
+    },
+    {
+      $project: {
+        username: 1,
+        courseTitle: "$courses.title",
+        courseDesc: "$courses.description",
+        coursePrice: "$courses.price",
+        courseImg: "$courses.imageUrl",
+      },
+    },
+  ]);
   return res
     .status(200)
     .json({ message: "Courses fetched successfully", courses });
