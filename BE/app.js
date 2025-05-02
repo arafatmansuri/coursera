@@ -4,6 +4,7 @@ const adminRouter = require("./src/routes/admin.router.js");
 const courseRouter = require("./src/routes/course.router.js");
 const cookieParser = require("cookie-parser");
 const cors = require("cors");
+const courseContentRouter = require("./src/routes/courseContent.router.js");
 require("dotenv").config();
 const app = express();
 app.use(express.json());
@@ -28,4 +29,5 @@ app.get("/", (req, res) => {
 app.use("/api/v1/user", userRouter);
 app.use("/api/v1/admin", adminRouter);
 app.use("/api/v1/course", courseRouter);
+app.use("/api/v1/content", courseContentRouter);
 module.exports = app;
