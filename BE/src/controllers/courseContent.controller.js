@@ -36,8 +36,43 @@ async function addContent(req, res) {
 }
 async function updateContent(req, res) {
   try {
+    const admin = req.user;
     const contentId = req.params.contentId;
     const { title, description, assignments, video } = req.body;
+    const isContentPresent = await Course.aggregate([
+      {
+        $lookup: {
+          from: "coursecontents",
+          localField: "_id",
+          foreignField: "courseId",
+          as: "content",
+        },
+      },
+      {
+        $unwind: "$content",
+      },
+      {
+        $match: {
+          $and: [
+            {
+              createrId: admin._id,
+              "content._id": contentId,
+            },
+          ],
+        },
+      },
+      {
+        $project: {
+          createrId: 1,
+          contentId: "$content._id",
+          contentTitle: "$content.title",
+        },
+      },
+    ]);
+    if (isContentPresent <= 0)
+      return res.status(404).json({
+        message: "You don't have access to make changes in this content",
+      });
     const updatedCourseContent = await CourseContent.findByIdAndUpdate(
       contentId,
       {
@@ -65,7 +100,41 @@ async function deleteContent(req, res) {
   try {
     const admin = req.user;
     const contentId = req.params.contentId;
-    const contentToBeDeleted = await CourseContent.findByIdAndDelete({$and:[{}]});
+    const isContentPresent = await Course.aggregate([
+      {
+        $lookup: {
+          from: "coursecontents",
+          localField: "_id",
+          foreignField: "courseId",
+          as: "content",
+        },
+      },
+      {
+        $unwind: "$content",
+      },
+      {
+        $match: {
+          $and: [
+            {
+              createrId: admin._id,
+              "content._id": contentId,
+            },
+          ],
+        },
+      },
+      {
+        $project: {
+          createrId: 1,
+          contentId: "$content._id",
+          contentTitle: "$content.title",
+        },
+      },
+    ]);
+    if (isContentPresent <= 0)
+      return res.status(404).json({
+        message: "You don't have access to make changes in this content",
+      });
+    const contentToBeDeleted = await CourseContent.findByIdAndDelete(contentId);
     if (!contentToBeDeleted) {
       return res.status(404).json({ message: "content not found" });
     }

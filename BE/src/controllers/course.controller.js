@@ -87,6 +87,8 @@ async function displayAdminCourses(req, res) {
     },
     {
       $project: {
+        _id: 0,
+        courseId: "$courses._id",
         courseTitle: "$courses.title",
         courseDesc: "$courses.description",
         coursePrice: "$courses.price",
