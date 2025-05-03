@@ -1,3 +1,4 @@
+const z = require("zod");
 const Course = require("../models/course.model.js");
 const CourseContent = require("../models/courseContent.model.js");
 
@@ -13,7 +14,18 @@ async function addContent(req, res) {
         message: "You don't have permission to add content in this course",
       });
     const { title, description, assignments, video } = req.body;
-
+    const reqBody = z.object({
+      title: z.string().min(5, { message: "title length is too short" }).trim(),
+      description: z.string().trim(),
+      assignments: z.array(),
+      video: z.string(),
+    });
+    const safeParse = reqBody.safeParse(req.body);
+    if (!safeParse.success) {
+      return res
+        .status(400)
+        .json({ message: safeParse.error.errors[0].message });
+    }
     const videoNo = (await CourseContent.countDocuments({ courseId })) + 1;
     // const assigments = assignmentsStr.split(",");
     const newContent = await CourseContent.create({
@@ -39,6 +51,18 @@ async function updateContent(req, res) {
     const admin = req.user;
     const contentId = req.params.contentId;
     const { title, description, assignments, video } = req.body;
+    const reqBody = z.object({
+      title: z.string().min(5, { message: "title length is too short" }).trim(),
+      description: z.string().trim(),
+      assignments: z.array(),
+      video: z.string(),
+    });
+    const safeParse = reqBody.safeParse(req.body);
+    if (!safeParse.success) {
+      return res
+        .status(400)
+        .json({ message: safeParse.error.errors[0].message });
+    }
     const isContentPresent = await Course.aggregate([
       {
         $lookup: {
