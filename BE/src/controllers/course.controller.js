@@ -1,3 +1,4 @@
+const z = require("zod");
 const Course = require("../models/course.model.js");
 const Purchase = require("../models/purchase.model.js");
 const User = require("../models/user.model.js");
@@ -55,7 +56,16 @@ async function purchaseCourse(req, res) {
 async function addCourse(req, res) {
   const admin = req.user;
   const { title, description, imageUrl, price } = req.body;
-
+  const reqBody = z.object({
+    title: z.string().min(5, { message: "title length is too short" }).trim(),
+    description: z.string().trim(),
+    imageUrl: z.string(),
+    price: z.number(),
+  });
+  const safeParse = reqBody.safeParse(req.body);
+  if (!safeParse.success) {
+    return res.status(400).json({ message: safeParse.error.errors[0].message });
+  }
   const course = await Course.create({
     title,
     description,
@@ -104,6 +114,16 @@ async function updateCourse(req, res) {
   const courseId = req.params.courseId;
   const admin = req.user;
   const { title, description, imageUrl, price } = req.body;
+  const reqBody = z.object({
+    title: z.string().min(5, { message: "title length is too short" }).trim(),
+    description: z.string().trim(),
+    imageUrl: z.string(),
+    price: z.number(),
+  });
+  const safeParse = reqBody.safeParse(req.body);
+  if (!safeParse.success) {
+    return res.status(400).json({ message: safeParse.error.errors[0].message });
+  }
   const course = await Course.findById(courseId);
   if (!course.createrId.equals(admin._id)) {
     return res
