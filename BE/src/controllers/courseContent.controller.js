@@ -13,7 +13,6 @@ async function addContent(req, res) {
       return res.status(404).json({
         message: "You don't have permission to add content in this course",
       });
-    const { title, description, assignments, video } = req.body;
     const reqBody = z.object({
       title: z.string().min(5, { message: "title length is too short" }).trim(),
       description: z.string().trim(),
@@ -29,10 +28,10 @@ async function addContent(req, res) {
     const videoNo = (await CourseContent.countDocuments({ courseId })) + 1;
     // const assigments = assignmentsStr.split(",");
     const newContent = await CourseContent.create({
-      title,
-      description,
-      assignments,
-      url: video,
+      title: safeParse.data.title,
+      description: safeParse.data.description,
+      assignments: safeParse.data.assignments,
+      url: safeParse.data.video,
       videoNo,
       courseId,
     });
@@ -50,7 +49,6 @@ async function updateContent(req, res) {
   try {
     const admin = req.user;
     const contentId = req.params.contentId;
-    const { title, description, assignments, video } = req.body;
     const reqBody = z.object({
       title: z.string().min(5, { message: "title length is too short" }).trim(),
       description: z.string().trim(),
@@ -101,10 +99,10 @@ async function updateContent(req, res) {
       contentId,
       {
         $set: {
-          title,
-          description,
-          assignments,
-          url: video,
+          title: safeParse.data.title,
+          description: safeParse.data.description,
+          assignments: safeParse.data.assignments,
+          url: safeParse.data.video,
         },
       },
       { new: true }

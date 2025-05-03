@@ -55,7 +55,6 @@ async function purchaseCourse(req, res) {
 //Admin Accessible Controllers
 async function addCourse(req, res) {
   const admin = req.user;
-  const { title, description, imageUrl, price } = req.body;
   const reqBody = z.object({
     title: z.string().min(5, { message: "title length is too short" }).trim(),
     description: z.string().trim(),
@@ -67,10 +66,10 @@ async function addCourse(req, res) {
     return res.status(400).json({ message: safeParse.error.errors[0].message });
   }
   const course = await Course.create({
-    title,
-    description,
-    imageUrl,
-    price,
+    title: safeParse.data.title,
+    description: safeParse.data.description,
+    imageUrl: safeParse.data.imageUrl,
+    price: safeParse.data.price,
     createrId: admin._id,
   });
 
@@ -113,7 +112,6 @@ async function displayAdminCourses(req, res) {
 async function updateCourse(req, res) {
   const courseId = req.params.courseId;
   const admin = req.user;
-  const { title, description, imageUrl, price } = req.body;
   const reqBody = z.object({
     title: z.string().min(5, { message: "title length is too short" }).trim(),
     description: z.string().trim(),
@@ -134,10 +132,10 @@ async function updateCourse(req, res) {
     courseId,
     {
       $set: {
-        title,
-        description,
-        imageUrl,
-        price,
+        title: safeParse.data.title,
+        description: safeParse.data.description,
+        imageUrl: safeParse.data.imageUrl,
+        price: safeParse.data.price,
       },
     },
     { new: true }
