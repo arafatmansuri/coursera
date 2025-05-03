@@ -5,6 +5,7 @@ const {
   addCourse,
   updateCourse,
   displayAdminCourses,
+  deleteCourse,
 } = require("../controllers/course.controller.js");
 const { userAuth } = require("../middlewears/user.middlewear.js");
 const { adminAuth } = require("../middlewears/admin.middlewear.js");
@@ -19,6 +20,7 @@ courseRouter.route("/purchase/:courseId").post(userAuth, purchaseCourse);
 courseRouter.use(adminAuth);
 courseRouter.route("/add").post(addCourse);
 courseRouter.route("/update/:courseId").put(updateCourse);
+courseRouter.route("/delete/:courseId").delete(deleteCourse);
 courseRouter.route("/getpubcourses").get(displayAdminCourses);
 
 module.exports = courseRouter;

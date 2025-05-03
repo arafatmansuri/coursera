@@ -131,7 +131,14 @@ async function updateCourse(req, res) {
 }
 async function deleteCourse(req, res) {
   try {
+    const admin = req.user;
     const courseId = req.params.courseId;
+    const course = await Course.findById(courseId);
+    if (!course.createrId.equals(admin._id)) {
+      return res
+        .status(401)
+        .json({ message: "You don't have access to update this course" });
+    }
     const courseToBeDeleted = await Course.findByIdAndDelete(courseId);
     if (!courseToBeDeleted) {
       return res.status(404).json({ message: "course not found" });
@@ -149,4 +156,5 @@ module.exports = {
   addCourse,
   displayAdminCourses,
   updateCourse,
+  deleteCourse,
 };
