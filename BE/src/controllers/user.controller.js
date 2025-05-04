@@ -1,8 +1,10 @@
+const otpGenerator = require("otp-generator");
 const User = require("../models/user.model.js");
 const Purchase = require("../models/purchase.model");
 const Course = require("../models/course.model");
 const z = require("zod");
 const jwt = require("jsonwebtoken");
+const OTP = require("../models/otp.model.js");
 async function generateAccessAndRefreshToken(userId) {
   try {
     const user = await User.findById(userId);
@@ -74,6 +76,72 @@ async function signup(req, res) {
     return res
       .status(200)
       .json({ message: "User created successfully", User: createdUser });
+  } catch (err) {
+    return res
+      .status(500)
+      .json({ message: err.message || "Something went wrong from our side" });
+  }
+}
+async function signupOTP(req, res) {
+  try {
+    const reqSchema = z.object({
+      username: z.string().min(3, { message: "username is too short" }).trim(),
+      email: z.string().email({ message: "Invalid email address" }),
+      password: z
+        .string()
+        .regex(/[A-Z]/, {
+          message: "Pasword should include atlist 1 uppercase",
+        })
+        .regex(/[a-z]/, {
+          message: "Pasword should include atlist 1 lowercase",
+        })
+        .regex(/[0-9]/, {
+          message: "Pasword should include atlist 1 number",
+        })
+        .regex(/[^A-Za-z0-9]/, {
+          message: "Pasword should include atlist 1 special charcter",
+        })
+        .min(8, { message: "Password length shouldn't be less than 8" }),
+    });
+    const safeParse = reqSchema.safeParse(req.body);
+    if (!safeParse.success) {
+      return res
+        .status(400)
+        .json({ message: safeParse.error.errors[0].message });
+    }
+    const user = await User.findOne({
+      $or: [{ username: safeParse.data.username, email: safeParse.data.email }],
+    });
+    if (user) {
+      return res
+        .status(409)
+        .json({ message: "User already exists with this username or email" });
+    }
+    const otp = otpGenerator.generate(6, {
+      lowerCaseAlphabets: false,
+      upperCaseAlphabets: false,
+      specialChars: false,
+    });
+    const IsOtpExists = await OTP.find({
+      $and: [
+        { email: safeParse.data.email, username: safeParse.data.username },
+      ],
+    })
+      .sort({ createdAt: -1 })
+      .limit(1);
+    if (IsOtpExists) {
+      const otpCreatedTime = new Date(IsOtpExists.createdAt).getMinutes();
+      if (new Date().getMinutes - otpCreatedTime <= 2) {
+        return res.status(403).json({ message: "Wait before sending new OTP" });
+      }
+    }
+    const newOtp = await OTP.create({
+      username: safeParse.data.username,
+      email: safeParse.data.email,
+      otp,
+      subject: "OTP for user signup",
+    }).select("-userId");
+    return res.status(200).json({ message: "OTP sent successfully", newOtp });
   } catch (err) {
     return res
       .status(500)
