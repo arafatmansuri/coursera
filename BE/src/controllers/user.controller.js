@@ -82,7 +82,7 @@ async function signup(req, res) {
       .json({ message: err.message || "Something went wrong from our side" });
   }
 }
-async function signupOTP(req, res) {
+async function signupOTPGeneration(req, res) {
   try {
     const reqSchema = z.object({
       username: z.string().min(3, { message: "username is too short" }).trim(),
@@ -110,38 +110,102 @@ async function signupOTP(req, res) {
         .json({ message: safeParse.error.errors[0].message });
     }
     const user = await User.findOne({
-      $or: [{ username: safeParse.data.username, email: safeParse.data.email }],
+      $and: [
+        { username: safeParse.data.username, email: safeParse.data.email },
+      ],
     });
     if (user) {
       return res
         .status(409)
         .json({ message: "User already exists with this username or email" });
     }
+    const newUser = await User.create({
+      username: safeParse.data.username,
+      email: safeParse.data.email,
+      password: safeParse.data.password,
+    });
+
+    const createdUser = await User.findById(newUser._id).select(
+      "-password -refreshToken"
+    );
+
+    if (!createdUser) {
+      return res
+        .status(500)
+        .json({ message: "Something went wrong from our side." });
+    }
+    const IsOtpExists = await OTP.find({
+      $and: [{ email: safeParse.data.email, userId: newUser._id }],
+    })
+      .sort({ createdAt: -1 })
+      .limit(1);
+    if (IsOtpExists.length !== 0) {
+      const otpCreatedTime = new Date(IsOtpExists[0].createdAt).getMinutes();
+      if (new Date().getMinutes - otpCreatedTime <= 2) {
+        return res
+          .status(403)
+          .json({ message: "Wait 2 minutes before sending new OTP" });
+      }
+    }
     const otp = otpGenerator.generate(6, {
       lowerCaseAlphabets: false,
       upperCaseAlphabets: false,
       specialChars: false,
     });
-    const IsOtpExists = await OTP.find({
-      $and: [
-        { email: safeParse.data.email, username: safeParse.data.username },
-      ],
-    })
-      .sort({ createdAt: -1 })
-      .limit(1);
-    if (IsOtpExists) {
-      const otpCreatedTime = new Date(IsOtpExists.createdAt).getMinutes();
-      if (new Date().getMinutes - otpCreatedTime <= 2) {
-        return res.status(403).json({ message: "Wait before sending new OTP" });
-      }
-    }
     const newOtp = await OTP.create({
+      userId: newUser._id,
       username: safeParse.data.username,
       email: safeParse.data.email,
       otp,
       subject: "OTP for user signup",
     }).select("-userId");
-    return res.status(200).json({ message: "OTP sent successfully", newOtp });
+    const cookieOptions = {
+      httpOnly: true,
+      secure: true,
+      sameSite: "None",
+      path: "/",
+      maxAge: 24 * 60 * 60 * 1000, // 1 day
+    };
+    return res
+      .cookie(
+        "signup_id",
+        { userId: newUser._id, email: newUser.email },
+        cookieOptions
+      )
+      .status(200)
+      .json({ message: "OTP sent successfully", newOtp });
+  } catch (err) {
+    return res
+      .status(500)
+      .json({ message: err.message || "Something went wrong from our side" });
+  }
+}
+async function signupOTPVerification(req, res) {
+  try {
+    const otp = req.body.otp;
+    const { userId, email } = req.cookies.signup_id;
+    const IsOtpExists = await OTP.find({
+      $and: [{ email: email, userId: userId }],
+    })
+      .sort({ createdAt: -1 })
+      .limit(1);
+
+    if (IsOtpExists.length === 0 || otp !== IsOtpExists[0]?.otp) {
+      return res.status(400).json({
+        message: "The OTP is not valid",
+      });
+    }
+    const user = await User.findOne({
+      $and: [{ userId: userId, email: email }],
+    });
+    if (!user) {
+      return res
+        .status(409)
+        .json({ message: "User doesn't exists with this username or email" });
+    }
+    user.isRegistered = true;
+    await user.save({ validateBeforeSave: false });
+    return res.status(200).json({ message: "User signup successfull", user });
   } catch (err) {
     return res
       .status(500)
@@ -257,6 +321,8 @@ async function getUserPurchases(req, res) {
 
 module.exports = {
   signup,
+  signupOTPGeneration,
+  signupOTPVerification,
   signin,
   refreshAccessAndRefreshToken,
   logout,
