@@ -6,12 +6,16 @@ const {
   refreshAccessAndRefreshToken,
   getUser,
   getUserPurchases,
+  signupOTPGeneration,
+  signupOTPVerification,
 } = require("../controllers/user.controller.js");
 const { userAuth } = require("../middlewears/user.middlewear.js");
 
 const userRouter = Router();
 
 userRouter.route("/signup").post(signup);
+userRouter.route("/signup/gen").post(signupOTPGeneration);
+userRouter.route("/signup/verify").post(signupOTPVerification);
 userRouter.route("/signin").post(signin);
 
 // secured routes - add auth middlewear

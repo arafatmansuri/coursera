@@ -1,3 +1,4 @@
+require("dotenv").config();
 const nodemailer = require("nodemailer");
 const transporter = nodemailer.createTransport({
   service: "gmail",
@@ -6,7 +7,10 @@ const transporter = nodemailer.createTransport({
     pass: process.env.MAILER_PASS,
   },
 });
-
+console.log({
+  user: process.env.MAILER_USER,
+  pass: process.env.MAILER_PASS,
+});
 async function sendMail(email, subject, user, otp) {
   try {
     let mailOptions = {
@@ -96,7 +100,7 @@ async function sendMail(email, subject, user, otp) {
     };
     let info = await transporter.sendMail(mailOptions);
   } catch (err) {
-    throw new Error("Something went wrong while generating otp");
+    throw new Error(err || "Something went wrong while generating otp");
   }
 }
 
