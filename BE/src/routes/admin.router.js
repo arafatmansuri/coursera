@@ -5,6 +5,8 @@ const {
   logout,
   refreshAccessAndRefreshToken,
   getAdmin,
+  signupOTPVerification,
+  signupOTPGeneration,
 } = require("../controllers/admin.controller.js");
 const { adminAuth } = require("../middlewears/admin.middlewear.js");
 
@@ -12,7 +14,8 @@ const adminRouter = Router();
 
 adminRouter.route("/signup").post(signup);
 adminRouter.route("/signin").post(signin);
-
+userRouter.route("/signup/gen").post(signupOTPGeneration);
+userRouter.route("/signup/verify").post(signupOTPVerification);
 //secured routes
 adminRouter.use(adminAuth);
 
