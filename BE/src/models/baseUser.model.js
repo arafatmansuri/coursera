@@ -24,10 +24,6 @@ const UserSchema = new Schema(
     refreshToken: {
       type: String,
     },
-    isRegistered: {
-      type: Boolean,
-      default: false,
-    },
   },
   { timestamps: true, discriminatorKey: "role" }
 );

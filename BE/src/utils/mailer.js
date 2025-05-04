@@ -7,10 +7,6 @@ const transporter = nodemailer.createTransport({
     pass: process.env.MAILER_PASS,
   },
 });
-console.log({
-  user: process.env.MAILER_USER,
-  pass: process.env.MAILER_PASS,
-});
 async function sendMail(email, subject, user, otp) {
   try {
     let mailOptions = {

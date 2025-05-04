@@ -4,19 +4,7 @@ const jwt = require("jsonwebtoken");
 const User = require("./baseUser.model");
 const Schema = mongoose.Schema;
 const AdminSchema = new Schema();
-/*AdminSchema.pre("save", async function (next) {
-  if (!this.isModified("password")) {
-    return next();
-  }
-  this.password = await bcrypt.hash(this.password, 10);
 
-  next();
-});
-
-AdminSchema.methods.isPasswordCorrect = function (userPasword) {
-  return bcrypt.compareSync(userPasword, this.password);
-};
-*/
 AdminSchema.methods.generateAccessToken = async function () {
   return jwt.sign(
     {
@@ -37,6 +25,5 @@ AdminSchema.methods.generateRefreshToken = async function () {
   );
 };
 
-// const Admin = mongoose.model("Admin", AdminSchema);
 const Admin = User.discriminator("Admin", AdminSchema);
 module.exports = Admin;

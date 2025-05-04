@@ -95,16 +95,15 @@ async function signupOTPGeneration(req, res) {
     }
     const user = await User.findOne({ email: safeParse.data.email });
     if (user) {
-      if (user.isRegistered == true)
-        return res
-          .status(409)
-          .json({ message: "User already exists with this username or email" });
+      return res
+        .status(409)
+        .json({ message: "User already exists with this email" });
     }
     const IsOtpExists = await OTP.find({ email: safeParse.data.email })
       .sort({ createdAt: -1 })
       .limit(1);
-    if (IsOtpExists) {
-      const otpCreatedTime = new Date(IsOtpExists[0].createdAt).getMinutes();
+    if (IsOtpExists.length === 1) {
+      const otpCreatedTime = new Date(IsOtpExists[0]?.createdAt).getMinutes();
       if (new Date().getMinutes() - otpCreatedTime <= 2) {
         return res
           .status(403)
@@ -143,10 +142,8 @@ async function signupOTPGeneration(req, res) {
 }
 async function signupOTPVerification(req, res) {
   try {
-    const otp = req.body.otp;
     const reqSchema = z.object({
       username: z.string().min(3, { message: "username is too short" }).trim(),
-      email: z.string().email({ message: "Invalid email address" }),
       password: z
         .string()
         .regex(/[A-Z]/, {
@@ -170,31 +167,29 @@ async function signupOTPVerification(req, res) {
         .status(400)
         .json({ message: safeParse.error.errors[0].message });
     }
-    const { username, email } = req.cookies.signup_id;
-    const IsOtpExists = await OTP.find({
-      $and: [{ email: email, username: username }],
-    })
+    const { email } = req.cookies.signup_id;
+    const IsOtpExists = await OTP.find({ email: email })
       .sort({ createdAt: -1 })
       .limit(1);
 
-    if (IsOtpExists.length === 0 || otp !== IsOtpExists[0]?.otp) {
+    if (
+      IsOtpExists.length === 0 ||
+      safeParse.data.otp !== IsOtpExists[0]?.otp
+    ) {
       return res.status(400).json({
         message: "The OTP is not valid",
       });
     }
-    const user = await User.findOne({
-      $and: [{ username: username, email: email }],
-    });
-    if (user?.isRegistered)
+    const user = await User.findOne({ username: safeParse.data.username });
+    if (user)
       return res
         .status(409)
-        .json({ message: "User already signedup with this username or email" });
+        .json({ message: "this username is not available" });
 
     const newUser = await User.create({
       username: safeParse.data.username,
-      email: safeParse.data.email,
+      email,
       password: safeParse.data.password,
-      isRegistered: true,
     });
 
     const createdUser = await User.findById(newUser._id).select(
@@ -206,9 +201,10 @@ async function signupOTPVerification(req, res) {
         .status(500)
         .json({ message: "Something went wrong from our side." });
     }
+    await OTP.deleteMany({ email });
     return res
       .status(200)
-      .json({ message: "User signup successfull", newUser });
+      .json({ message: "User signup successfull", createdUser });
   } catch (err) {
     return res
       .status(500)
