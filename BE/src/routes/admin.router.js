@@ -14,8 +14,8 @@ const adminRouter = Router();
 
 adminRouter.route("/signup").post(signup);
 adminRouter.route("/signin").post(signin);
-userRouter.route("/signup/gen").post(signupOTPGeneration);
-userRouter.route("/signup/verify").post(signupOTPVerification);
+adminRouter.route("/signup/gen").post(signupOTPGeneration);
+adminRouter.route("/signup/verify").post(signupOTPVerification);
 //secured routes
 adminRouter.use(adminAuth);
 
