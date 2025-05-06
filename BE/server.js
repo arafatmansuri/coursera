@@ -3,7 +3,8 @@ const connectDB = require("./src/db");
 require("dotenv").config();
 const port = process.env.PORT || 3001;
 connectDB()
-  .then(() => {
+  .then((data) => {
+    console.log("MongoDB connected");
     app.listen(port, () => {
       console.log(`Server is running on port ${port}`);
     });

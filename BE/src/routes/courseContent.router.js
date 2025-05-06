@@ -6,8 +6,8 @@ const {
   deleteContent,
   getContent,
 } = require("../controllers/courseContent.controller");
+const { uploadFile } = require("../utils/fileUploader.js");
 const multer = require("multer");
-const { uploadFile } = require("../utils/fileUploader");
 const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
 const courseContentRouter = Router();

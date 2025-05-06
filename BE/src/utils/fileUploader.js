@@ -14,7 +14,7 @@ async function uploadFile(req, res, next) {
     uploadStream.end(req.file.buffer);
     uploadStream.on("finish", async () => {
       req.imgId = uploadStream.id;
-      next();
+      return next();
     });
   } catch (err) {
     return res
@@ -26,11 +26,11 @@ async function deleteFile(id) {
   try {
     const client = await connectDB();
     const bucket = new GridFSBucket(client, {
-      bucketName: "courseThumbnail",
+      bucketName: "courseContents",
     });
     await bucket.delete(id);
   } catch (err) {
-    throw new Error("Error while deleting file");
+    throw new Error(err.message || "Error while deleting file");
   }
 }
 module.exports = { uploadFile, deleteFile };

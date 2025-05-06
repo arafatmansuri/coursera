@@ -4,7 +4,6 @@ const ContentSchema = new mongoose.Schema({
   videoNo: {
     type: Number,
     required: true,
-    unique: true,
   },
   title: {
     type: String,
@@ -22,7 +21,6 @@ const ContentSchema = new mongoose.Schema({
   ],
   url: {
     type: mongoose.Schema.Types.ObjectId,
-    required: true,
   },
   courseId: {
     type: mongoose.Schema.Types.ObjectId,

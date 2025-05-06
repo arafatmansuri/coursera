@@ -11,7 +11,7 @@ async function addContent(req, res) {
       $and: [{ createrId: admin._id, _id: courseId }],
     });
     if (!isValidCreator) {
-      deleteFile(req.imgId);
+      await deleteFile(req.imgId);
       return res.status(404).json({
         message: "You don't have permission to add content in this course",
       });
@@ -19,11 +19,11 @@ async function addContent(req, res) {
     const reqBody = z.object({
       title: z.string().min(5, { message: "title length is too short" }).trim(),
       description: z.string().trim(),
-      assignments: z.array(),
+      assignments: z.string(),
     });
     const safeParse = reqBody.safeParse(req.body);
     if (!safeParse.success) {
-      deleteFile(req.imgId);
+      await deleteFile(req.imgId);
       return res
         .status(400)
         .json({ message: safeParse.error.errors[0].message });
@@ -38,12 +38,11 @@ async function addContent(req, res) {
       videoNo,
       courseId,
     });
-
     return res
       .status(200)
       .json({ message: "Video Added Successfully", newContent });
   } catch (err) {
-    deleteFile(req.imgId);
+    await deleteFile(req.imgId);
     return res
       .status(500)
       .json({ message: err.message || "Something went wrong from our side" });
@@ -60,7 +59,7 @@ async function updateContent(req, res) {
     });
     const safeParse = reqBody.safeParse(req.body);
     if (!safeParse.success) {
-      deleteFile(req.imgId);
+      await deleteFile(req.imgId);
       return res
         .status(400)
         .json({ message: safeParse.error.errors[0].message });
@@ -96,7 +95,7 @@ async function updateContent(req, res) {
       },
     ]);
     if (isContentPresent <= 0) {
-      deleteFile(req.imgId);
+      await deleteFile(req.imgId);
       return res.status(404).json({
         message: "You don't have access to make changes in this content",
       });
@@ -114,14 +113,14 @@ async function updateContent(req, res) {
       { new: true }
     );
     if (!updatedCourseContent) {
-      deleteFile(req.imgId);
+      await deleteFile(req.imgId);
       return res.status(404).json({ message: "Content not found" });
     }
     return res
       .status(200)
       .json({ message: "Content updated successfully", updatedCourseContent });
   } catch (err) {
-    deleteFile(req.imgId);
+    await deleteFile(req.imgId);
     return res
       .status(500)
       .json({ message: err.message || "something went wrong from our side" });
@@ -148,7 +147,7 @@ async function deleteContent(req, res) {
           $and: [
             {
               createrId: admin._id,
-              "content._id": contentId,
+              "content._id": "ObjectId('681a4ee91c5d9b59f3da9483')",
             },
           ],
         },
@@ -158,7 +157,7 @@ async function deleteContent(req, res) {
           createrId: 1,
           contentId: "$content._id",
           contentTitle: "$content.title",
-          url: 1,
+          url: "$content.url",
         },
       },
     ]);
@@ -166,7 +165,7 @@ async function deleteContent(req, res) {
       return res.status(404).json({
         message: "You don't have access to make changes in this content",
       });
-    deleteFile(isContentPresent[0].url);
+    await deleteFile(isContentPresent[0].url);
     const contentToBeDeleted = await CourseContent.findByIdAndDelete(contentId);
     if (!contentToBeDeleted) {
       return res.status(404).json({ message: "content not found" });
