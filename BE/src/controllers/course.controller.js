@@ -58,7 +58,6 @@ async function addCourse(req, res) {
   const reqBody = z.object({
     title: z.string().min(5, { message: "title length is too short" }).trim(),
     description: z.string().trim(),
-    imageUrl: z.string(),
     price: z.number(),
   });
   const safeParse = reqBody.safeParse(req.body);
@@ -68,7 +67,7 @@ async function addCourse(req, res) {
   const course = await Course.create({
     title: safeParse.data.title,
     description: safeParse.data.description,
-    imageUrl: safeParse.data.imageUrl,
+    imageUrl: req.imgId,
     price: safeParse.data.price,
     createrId: admin._id,
   });

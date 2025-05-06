@@ -17,7 +17,7 @@ const CourseSchema = new Schema(
       required: true,
     },
     imageUrl: {
-      type: String,
+      type: Schema.Types.ObjectId,
     },
     createrId: {
       type: Schema.Types.ObjectId,
