@@ -11,7 +11,7 @@ const { userAuth } = require("../middlewears/user.middlewear.js");
 const { adminAuth } = require("../middlewears/admin.middlewear.js");
 const { uploadFile } = require("../utils/fileUploader.js");
 const multer = require("multer");
-const storage = multer.diskStorage();
+const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
 const courseRouter = Router();
 
@@ -21,9 +21,7 @@ courseRouter.route("/purchase/:courseId").post(userAuth, purchaseCourse);
 
 //Only Admins Accessible routes
 courseRouter.use(adminAuth);
-courseRouter
-  .route("/add")
-  .post(upload.single("imageUrl"), uploadFile, addCourse);
+courseRouter.route("/add").post(upload.single("image"), uploadFile, addCourse);
 courseRouter.route("/update/:courseId").put(updateCourse);
 courseRouter.route("/delete/:courseId").delete(deleteCourse);
 courseRouter.route("/getpubcourses").get(displayAdminCourses);

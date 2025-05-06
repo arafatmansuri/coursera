@@ -3,6 +3,7 @@ const Course = require("../models/course.model.js");
 const Purchase = require("../models/purchase.model.js");
 const User = require("../models/user.model.js");
 const Admin = require("../models/admin.model.js");
+const { deleteFile } = require("../utils/fileUploader.js");
 //User Accessible Controllers
 async function previewCourses(req, res) {
   // const courses = await Course.find({});
@@ -54,25 +55,35 @@ async function purchaseCourse(req, res) {
 
 //Admin Accessible Controllers
 async function addCourse(req, res) {
-  const admin = req.user;
-  const reqBody = z.object({
-    title: z.string().min(5, { message: "title length is too short" }).trim(),
-    description: z.string().trim(),
-    price: z.number(),
-  });
-  const safeParse = reqBody.safeParse(req.body);
-  if (!safeParse.success) {
-    return res.status(400).json({ message: safeParse.error.errors[0].message });
-  }
-  const course = await Course.create({
-    title: safeParse.data.title,
-    description: safeParse.data.description,
-    imageUrl: req.imgId,
-    price: safeParse.data.price,
-    createrId: admin._id,
-  });
+  try {
+    const admin = req.user;
+    const reqBody = z.object({
+      title: z.string().min(5, { message: "title length is too short" }).trim(),
+      description: z.string().trim(),
+      price: z.string(),
+    });
+    const safeParse = reqBody.safeParse(req.body);
+    if (!safeParse.success) {
+      deleteFile(req.imgId);
+      return res.status(400).json({
+        message: safeParse.error.errors[0].message,
+      });
+    }
+    const course = await Course.create({
+      title: safeParse.data.title,
+      description: safeParse.data.description,
+      imageUrl: req.imgId,
+      price: Number(safeParse.data.price),
+      createrId: admin._id,
+    });
 
-  return res.status(200).json({ message: "Course added", course });
+    return res.status(200).json({ message: "Course added", course });
+  } catch (err) {
+    deleteFile(req.imgId);
+    return res
+      .status(500)
+      .json({ message: err.message || "Something went wrong from our side" });
+  }
 }
 async function displayAdminCourses(req, res) {
   const admin = req.user;
