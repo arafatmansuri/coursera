@@ -22,7 +22,9 @@ courseRouter.route("/purchase/:courseId").post(userAuth, purchaseCourse);
 //Only Admins Accessible routes
 courseRouter.use(adminAuth);
 courseRouter.route("/add").post(upload.single("image"), uploadFile, addCourse);
-courseRouter.route("/update/:courseId").put(updateCourse);
+courseRouter
+  .route("/update/:courseId")
+  .put(upload.single("image"), uploadFile, updateCourse);
 courseRouter.route("/delete/:courseId").delete(deleteCourse);
 courseRouter.route("/getpubcourses").get(displayAdminCourses);
 

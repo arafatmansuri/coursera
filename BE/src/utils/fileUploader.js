@@ -4,7 +4,7 @@ async function uploadFile(req, res, next) {
   try {
     const client = await connectDB();
     const bucket = new GridFSBucket(client, {
-      bucketName: "courseThumbnail",
+      bucketName: "courseContents",
     });
     const filename = `${Date.now()}-${req.file.originalname.replace(
       /\s+/g,

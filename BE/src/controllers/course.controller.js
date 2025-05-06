@@ -125,7 +125,6 @@ async function updateCourse(req, res) {
   const reqBody = z.object({
     title: z.string().min(5, { message: "title length is too short" }).trim(),
     description: z.string().trim(),
-    imageUrl: z.string(),
     price: z.number(),
   });
   const safeParse = reqBody.safeParse(req.body);
@@ -167,6 +166,7 @@ async function deleteCourse(req, res) {
         .status(401)
         .json({ message: "You don't have access to update this course" });
     }
+    await deleteFile(course.imageUrl);
     const courseToBeDeleted = await Course.findByIdAndDelete(courseId);
     if (!courseToBeDeleted) {
       return res.status(404).json({ message: "course not found" });
