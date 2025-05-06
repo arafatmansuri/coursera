@@ -21,7 +21,7 @@ const ContentSchema = new mongoose.Schema({
     },
   ],
   url: {
-    type: String,
+    type: mongoose.Schema.Types.ObjectId,
     required: true,
   },
   courseId: {

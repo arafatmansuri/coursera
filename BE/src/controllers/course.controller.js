@@ -143,7 +143,7 @@ async function updateCourse(req, res) {
       $set: {
         title: safeParse.data.title,
         description: safeParse.data.description,
-        imageUrl: safeParse.data.imageUrl,
+        imageUrl: req.imgId,
         price: safeParse.data.price,
       },
     },

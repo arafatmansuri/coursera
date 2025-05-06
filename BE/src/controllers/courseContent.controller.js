@@ -1,6 +1,7 @@
 const z = require("zod");
 const Course = require("../models/course.model.js");
 const CourseContent = require("../models/courseContent.model.js");
+const { deleteFile } = require("../utils/fileUploader.js");
 
 async function addContent(req, res) {
   try {
@@ -9,18 +10,20 @@ async function addContent(req, res) {
     const isValidCreator = await Course.findOne({
       $and: [{ createrId: admin._id, _id: courseId }],
     });
-    if (!isValidCreator)
+    if (!isValidCreator) {
+      deleteFile(req.imgId);
       return res.status(404).json({
         message: "You don't have permission to add content in this course",
       });
+    }
     const reqBody = z.object({
       title: z.string().min(5, { message: "title length is too short" }).trim(),
       description: z.string().trim(),
       assignments: z.array(),
-      video: z.string(),
     });
     const safeParse = reqBody.safeParse(req.body);
     if (!safeParse.success) {
+      deleteFile(req.imgId);
       return res
         .status(400)
         .json({ message: safeParse.error.errors[0].message });
@@ -31,7 +34,7 @@ async function addContent(req, res) {
       title: safeParse.data.title,
       description: safeParse.data.description,
       assignments: safeParse.data.assignments,
-      url: safeParse.data.video,
+      url: req.imgId,
       videoNo,
       courseId,
     });
@@ -40,6 +43,7 @@ async function addContent(req, res) {
       .status(200)
       .json({ message: "Video Added Successfully", newContent });
   } catch (err) {
+    deleteFile(req.imgId);
     return res
       .status(500)
       .json({ message: err.message || "Something went wrong from our side" });
@@ -53,10 +57,10 @@ async function updateContent(req, res) {
       title: z.string().min(5, { message: "title length is too short" }).trim(),
       description: z.string().trim(),
       assignments: z.array(),
-      video: z.string(),
     });
     const safeParse = reqBody.safeParse(req.body);
     if (!safeParse.success) {
+      deleteFile(req.imgId);
       return res
         .status(400)
         .json({ message: safeParse.error.errors[0].message });
@@ -91,10 +95,12 @@ async function updateContent(req, res) {
         },
       },
     ]);
-    if (isContentPresent <= 0)
+    if (isContentPresent <= 0) {
+      deleteFile(req.imgId);
       return res.status(404).json({
         message: "You don't have access to make changes in this content",
       });
+    }
     const updatedCourseContent = await CourseContent.findByIdAndUpdate(
       contentId,
       {
@@ -102,17 +108,20 @@ async function updateContent(req, res) {
           title: safeParse.data.title,
           description: safeParse.data.description,
           assignments: safeParse.data.assignments,
-          url: safeParse.data.video,
+          url: req.imgId,
         },
       },
       { new: true }
     );
-    if (!updatedCourseContent)
+    if (!updatedCourseContent) {
+      deleteFile(req.imgId);
       return res.status(404).json({ message: "Content not found" });
+    }
     return res
       .status(200)
       .json({ message: "Content updated successfully", updatedCourseContent });
   } catch (err) {
+    deleteFile(req.imgId);
     return res
       .status(500)
       .json({ message: err.message || "something went wrong from our side" });
@@ -149,6 +158,7 @@ async function deleteContent(req, res) {
           createrId: 1,
           contentId: "$content._id",
           contentTitle: "$content.title",
+          url: 1,
         },
       },
     ]);
@@ -156,6 +166,7 @@ async function deleteContent(req, res) {
       return res.status(404).json({
         message: "You don't have access to make changes in this content",
       });
+    deleteFile(isContentPresent[0].url);
     const contentToBeDeleted = await CourseContent.findByIdAndDelete(contentId);
     if (!contentToBeDeleted) {
       return res.status(404).json({ message: "content not found" });
