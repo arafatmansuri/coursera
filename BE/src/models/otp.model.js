@@ -27,6 +27,10 @@ const OtpSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  type:{
+    type:String,
+    enum:["forget","signup"],
+  }
 });
 
 OtpSchema.pre("save", async function (next) {

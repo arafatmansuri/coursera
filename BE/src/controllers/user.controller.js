@@ -140,6 +140,68 @@ async function signupOTPGeneration(req, res) {
       .json({ message: err.message || "Something went wrong from our side" });
   }
 }
+async function forgetPasswordOTPGeneration(req, res) {
+  try {
+    let user;
+    let inputType;
+    if (
+      req.body.input.match(/^[a-zA-z0-9._%+-]+@[a-zA-z0-9.-]+\.[a-zA-z]{2,}$/)
+    ) {
+      inputType = "email";
+      user = await User.findOne({ email: req.body.input });
+    } else {
+      inputType = "username";
+      user = await User.findOne({ username: req.body.input });
+    }
+    if (!user) {
+      return res
+        .status(409)
+        .json({ message: `User doesn't exists with this ${inputType}` });
+    }
+    const IsOtpExists = await OTP.find({
+      $and: [{ email: req.body.input, type: "forget" }],
+    })
+      .sort({ createdAt: -1 })
+      .limit(1);
+    if (IsOtpExists.length === 1) {
+      const otpCreatedTime = new Date(IsOtpExists[0]?.createdAt).getMinutes();
+      if (new Date().getMinutes() - otpCreatedTime <= 2) {
+        return res
+          .status(403)
+          .json({ message: "Wait 2 minutes before sending new OTP" });
+      }
+    }
+    const otp = otpGenerator.generate(6, {
+      lowerCaseAlphabets: false,
+      upperCaseAlphabets: false,
+      specialChars: false,
+    });
+    const newOtp = await OTP.create({
+      email: user.email,
+      otp,
+      subject: "OTP for forget password",
+      type: "forget",
+    });
+    if (!newOtp) {
+      return res.status(500).json({ message: "OTP not generated" });
+    }
+    const cookieOptions = {
+      httpOnly: true,
+      secure: true,
+      sameSite: "None",
+      path: "/",
+      maxAge: 10 * 60000, // 10 minutes
+    };
+    return res
+      .cookie("signup_id", { email: newOtp.email }, cookieOptions)
+      .status(200)
+      .json({ message: "OTP sent successfully", newOtp });
+  } catch (err) {
+    return res
+      .status(500)
+      .json({ message: err.message || "Something went wrong from our side" });
+  }
+}
 async function signupOTPVerification(req, res) {
   try {
     const reqSchema = z.object({
@@ -205,6 +267,65 @@ async function signupOTPVerification(req, res) {
     return res
       .status(200)
       .json({ message: "User signup successfull", createdUser });
+  } catch (err) {
+    return res
+      .status(500)
+      .json({ message: err.message || "Something went wrong from our side" });
+  }
+}
+async function forgetPasswordOTPVerification(req, res) {
+  try {
+    const reqSchema = z.object({
+      otp: z.string((val) => Number(val), z.number()).length(6),
+      password: z
+        .string()
+        .regex(/[A-Z]/, {
+          message: "Password should include atlist 1 uppercase",
+        })
+        .regex(/[a-z]/, {
+          message: "Password should include atlist 1 lowercase",
+        })
+        .regex(/[0-9]/, {
+          message: "Password should include atlist 1 number",
+        })
+        .regex(/[^A-Za-z0-9]/, {
+          message: "Password should include atlist 1 special charcter",
+        })
+        .min(8, { message: "Password length shouldn't be less than 8" }),
+    });
+    const safeParse = reqSchema.safeParse(req.body);
+    if (!safeParse.success) {
+      return res
+        .status(400)
+        .json({ message: safeParse.error.errors[0].message });
+    }
+    const { email } = req.cookies.signup_id;
+    const IsOtpExists = await OTP.find({
+      $and: [{ email: email, type: "forget" }],
+    })
+      .sort({ createdAt: -1 })
+      .limit(1);
+
+    if (
+      IsOtpExists.length === 0 ||
+      safeParse.data.otp !== IsOtpExists[0]?.otp
+    ) {
+      return res.status(400).json({
+        message: "The OTP is not valid",
+      });
+    }
+    const user = await User.findOne({ email: email });
+    if (!user)
+      return res
+        .status(500)
+        .json({ message: "Something went wrong from our side" });
+
+    user.password = safeParse.data.password;
+    await user.save({ validateBeforeSave: false });
+    await OTP.deleteMany({ $and: [{ email: email, type: "forget" }] });
+    return res
+      .status(200)
+      .json({ message: "Password forgetted successfully", createdUser });
   } catch (err) {
     return res
       .status(500)
@@ -358,4 +479,6 @@ module.exports = {
   getUserPurchases,
   changeCurrentPassword,
   changeCurrentUsername,
+  forgetPasswordOTPGeneration,
+  forgetPasswordOTPVerification,
 };
