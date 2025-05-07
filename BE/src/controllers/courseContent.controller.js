@@ -2,6 +2,7 @@ const z = require("zod");
 const Course = require("../models/course.model.js");
 const CourseContent = require("../models/courseContent.model.js");
 const { deleteFile } = require("../utils/fileUploader.js");
+const mongoose = require("mongoose");
 
 async function addContent(req, res) {
   try {
@@ -55,7 +56,7 @@ async function updateContent(req, res) {
     const reqBody = z.object({
       title: z.string().min(5, { message: "title length is too short" }).trim(),
       description: z.string().trim(),
-      assignments: z.array(),
+      assignments: z.string(),
     });
     const safeParse = reqBody.safeParse(req.body);
     if (!safeParse.success) {
@@ -81,7 +82,7 @@ async function updateContent(req, res) {
           $and: [
             {
               createrId: admin._id,
-              "content._id": contentId,
+              "content._id": new mongoose.Types.ObjectId(contentId),
             },
           ],
         },
@@ -94,7 +95,7 @@ async function updateContent(req, res) {
         },
       },
     ]);
-    if (isContentPresent <= 0) {
+    if (isContentPresent.length <= 0) {
       await deleteFile(req.imgId);
       return res.status(404).json({
         message: "You don't have access to make changes in this content",
@@ -147,7 +148,7 @@ async function deleteContent(req, res) {
           $and: [
             {
               createrId: admin._id,
-              "content._id": "ObjectId('681a4ee91c5d9b59f3da9483')",
+              "content._id": new mongoose.Types.ObjectId(contentId),
             },
           ],
         },
@@ -157,15 +158,15 @@ async function deleteContent(req, res) {
           createrId: 1,
           contentId: "$content._id",
           contentTitle: "$content.title",
-          url: "$content.url",
+          fileId: "content.url",
         },
       },
     ]);
-    if (isContentPresent <= 0)
+    if (isContentPresent.length <= 0)
       return res.status(404).json({
-        message: "You don't have access to make changes in this content",
+        message: "No courses found",
       });
-    await deleteFile(isContentPresent[0].url);
+    await deleteFile(isContentPresent[0].fileId);
     const contentToBeDeleted = await CourseContent.findByIdAndDelete(contentId);
     if (!contentToBeDeleted) {
       return res.status(404).json({ message: "content not found" });

@@ -125,7 +125,7 @@ async function updateCourse(req, res) {
   const reqBody = z.object({
     title: z.string().min(5, { message: "title length is too short" }).trim(),
     description: z.string().trim(),
-    price: z.number(),
+    price: z.string(),
   });
   const safeParse = reqBody.safeParse(req.body);
   if (!safeParse.success) {
