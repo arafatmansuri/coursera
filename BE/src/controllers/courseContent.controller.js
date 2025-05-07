@@ -20,9 +20,16 @@ async function addContent(req, res) {
     const reqBody = z.object({
       title: z.string().min(5, { message: "title length is too short" }).trim(),
       description: z.string().trim(),
-      assignments: z.string(),
+      assignments: z.array(z.string()),
     });
-    const safeParse = reqBody.safeParse(req.body);
+    const assignments = Array.isArray(req.body.assignments)
+      ? req.body.assignments
+      : JSON.parse(req.body.assignments);
+    const safeParse = reqBody.safeParse({
+      title: req.body.title,
+      description: req.body.description,
+      assignments: assignments,
+    });
     if (!safeParse.success) {
       await deleteFile(req.imgId);
       return res
@@ -30,7 +37,6 @@ async function addContent(req, res) {
         .json({ message: safeParse.error.errors[0].message });
     }
     const videoNo = (await CourseContent.countDocuments({ courseId })) + 1;
-    // const assigments = assignmentsStr.split(",");
     const newContent = await CourseContent.create({
       title: safeParse.data.title,
       description: safeParse.data.description,
@@ -56,7 +62,7 @@ async function updateContent(req, res) {
     const reqBody = z.object({
       title: z.string().min(5, { message: "title length is too short" }).trim(),
       description: z.string().trim(),
-      assignments: z.string(),
+      assignments: z.array(),
     });
     const safeParse = reqBody.safeParse(req.body);
     if (!safeParse.success) {
