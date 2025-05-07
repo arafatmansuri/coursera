@@ -317,35 +317,30 @@ async function getUserPurchases(req, res) {
 
   return res.status(200).json({ courses });
 }
-async function changeCurrentPassword(req, res) {
+async function changeCurrentUsername(req, res) {
   try {
     const userId = req.user;
-    const { oldPassword, newPassword } = req.body;
+    const { newUsername, password } = req.body;
     const user = await User.findById(userId._id);
-    const isPasswordCorrect = user.isPasswordCorrect(oldPassword);
+    const isPasswordCorrect = user.isPasswordCorrect(password);
     if (!isPasswordCorrect)
       return res.status(400).json({ message: "Incorrect password" });
-    const PasswordValidation = z
+    const usernameValidation = z
       .string()
-      .regex(/[A-Z]/, {
-        message: "Password must contain at list one upperCase",
-      })
-      .regex(/[a-z]/, {
-        message: "Password must contain at list one lowerCase",
-      })
-      .regex(/[0-9]/, { message: "Password must contain at list one number" })
-      .regex(/[^A-Za-z0-9]/, {
-        message: "Password must contains at list one special char",
-      })
-      .min(8, { message: "Password is to short" });
-    const validatePassword = PasswordValidation.safeParse(newPassword);
-    if (!validatePassword.success)
+      .min(3, { message: "Password is to short" });
+    const validateUsername = usernameValidation.safeParse(newUsername);
+    if (!validateUsername.success)
       return res
         .status(400)
-        .json({ message: validatePassword.error.errors[0].message });
-    user.password = validatePassword.data;
+        .json({ message: validateUsername.error.errors[0].message });
+    const isUsernameExists = await User.findOne({
+      username: validateUsername.data,
+    });
+    if (isUsernameExists)
+      return res.status(400).json({ message: "Username unavailable" });
+    user.username = validateUsername.data;
     await user.save({ validateBeforeSave: false });
-    return res.status(200).json({ message: "Password changed successfully" });
+    return res.status(200).json({ message: "Username changed successfully" });
   } catch (err) {
     return res
       .status(500)
@@ -362,4 +357,5 @@ module.exports = {
   getUser,
   getUserPurchases,
   changeCurrentPassword,
+  changeCurrentUsername,
 };

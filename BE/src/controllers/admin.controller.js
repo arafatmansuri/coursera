@@ -339,6 +339,36 @@ async function changeCurrentPassword(req, res) {
       .json({ message: err.message || "something went wrong from our side" });
   }
 }
+async function changeCurrentUsername(req, res) {
+  try {
+    const admin = req.user;
+    const { newUsername, password } = req.body;
+    const user = await Admin.findById(admin._id);
+    const isPasswordCorrect = user.isPasswordCorrect(password);
+    if (!isPasswordCorrect)
+      return res.status(400).json({ message: "Incorrect password" });
+    const usernameValidation = z
+      .string()
+      .min(3, { message: "Password is to short" });
+    const validateUsername = usernameValidation.safeParse(newUsername);
+    if (!validateUsername.success)
+      return res
+        .status(400)
+        .json({ message: validateUsername.error.errors[0].message });
+    const isUsernameExists = await Admin.findOne({
+      username: validateUsername.data,
+    });
+    if (isUsernameExists)
+      return res.status(400).json({ message: "Username unavailable" });
+    user.username = validateUsername.data;
+    await user.save({ validateBeforeSave: false });
+    return res.status(200).json({ message: "Username changed successfully" });
+  } catch (err) {
+    return res
+      .status(500)
+      .json({ message: err.message || "something went wrong from our side" });
+  }
+}
 module.exports = {
   signup,
   signupOTPGeneration,
@@ -348,4 +378,5 @@ module.exports = {
   logout,
   getAdmin,
   changeCurrentPassword,
+  changeCurrentUsername,
 };

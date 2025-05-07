@@ -24,5 +24,5 @@ adminRouter.route("/logout").get(logout);
 adminRouter.route("/reftoken").post(refreshAccessAndRefreshToken);
 adminRouter.route("/getadmin").get(getAdmin);
 adminRouter.route("/changepassword").post(changeCurrentPassword);
-
+userRouter.route("/changeusername").post(changeCurrentUsername);
 module.exports = adminRouter;
