@@ -92,6 +92,7 @@ async function updateContent(req, res) {
           createrId: 1,
           contentId: "$content._id",
           contentTitle: "$content.title",
+          fileId: "$content.url",
         },
       },
     ]);
@@ -101,6 +102,7 @@ async function updateContent(req, res) {
         message: "You don't have access to make changes in this content",
       });
     }
+    await deleteFile(isContentPresent[0].fileId);
     const updatedCourseContent = await CourseContent.findByIdAndUpdate(
       contentId,
       {
@@ -158,7 +160,7 @@ async function deleteContent(req, res) {
           createrId: 1,
           contentId: "$content._id",
           contentTitle: "$content.title",
-          fileId: "content.url",
+          fileId: "$content.url",
         },
       },
     ]);

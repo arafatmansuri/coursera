@@ -137,6 +137,7 @@ async function updateCourse(req, res) {
       .status(401)
       .json({ message: "You don't have access to update this course" });
   }
+  await deleteFile(course.imageUrl);
   const updatedCourse = await Course.findByIdAndUpdate(
     courseId,
     {
