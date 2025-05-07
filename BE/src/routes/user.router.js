@@ -8,6 +8,7 @@ const {
   getUserPurchases,
   signupOTPGeneration,
   signupOTPVerification,
+  changeCurrentPassword,
 } = require("../controllers/user.controller.js");
 const { userAuth } = require("../middlewears/user.middlewear.js");
 
@@ -24,5 +25,6 @@ userRouter.route("/logout").get(logout);
 userRouter.route("/reftoken").post(refreshAccessAndRefreshToken);
 userRouter.route("/getuser").get(getUser);
 userRouter.route("/getpurchases").get(getUserPurchases);
+userRouter.route("/changepassword").post(changeCurrentPassword);
 
 module.exports = userRouter;
